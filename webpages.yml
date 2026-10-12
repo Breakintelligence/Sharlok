@@ -1,0 +1,49 @@
+# Sharlok live web search sources.
+#
+# Topic-keyed lists of URLs for default live web context during analysis and
+# recommendations. Sharlok matches the architecture description / query
+# against these topic keys (case-insensitive word match against the key name)
+# to decide which URLs to fetch. "other" is the fallback used when no topic
+# key matches.
+#
+# Add/remove URLs or whole topics freely — no code changes needed.
+
+aws:
+  - https://docs.aws.amazon.com/security/
+  - https://aws.amazon.com/security/
+  - https://aws.amazon.com/architecture/security-identity-compliance/
+  - https://aws.amazon.com/blogs/security/
+  - https://aws.amazon.com/blogs/security/building-an-ai-powered-defense-in-depth-security-architecture-for-serverless-microservices/
+  - https://aws.amazon.com/blogs/machine-learning/security-best-practices-to-consider-while-fine-tuning-models-in-amazon-bedrock/
+  - https://aws.amazon.com/blogs/security/securing-the-rag-ingestion-pipeline-filtering-mechanisms/
+
+azure:
+  - https://learn.microsoft.com/en-us/azure/security/
+  - https://azure.microsoft.com/en-us/resources/cloud-security/
+  - https://learn.microsoft.com/en-us/azure/well-architected/security/
+  - https://learn.microsoft.com/en-us/azure/security/threat-modeling
+  - https://learn.microsoft.com/en-us/security/threat-modeling/
+  - https://learn.microsoft.com/en-us/azure/architecture/security/
+
+gcp:
+  - https://cloud.google.com/security
+  - https://cloud.google.com/architecture/framework/security
+  - https://cloud.google.com/security/best-practices
+
+ai:
+  - https://owasp.org/www-project-top-10-for-large-language-model-applications/
+  - https://mitre-atlas.github.io/
+  - https://www.paloaltonetworks.com/cyberpedia/what-is-ai-prompt-security
+  - https://www.microsoft.com/en-us/security/blog/2026/05/07/prompts-become-shells-rce-vulnerabilities-ai-agent-frameworks/
+  - https://prompt.security/blog/the-agentic-ai-attack-surface-where-risk-lives-beyond-the-prompt
+  - https://embracethered.com/blog/
+
+other:
+  - https://owasp.org/
+  - https://owasp.org/www-project-threat-modeling/
+  - https://attack.mitre.org/
+  - https://csrc.nist.gov/
+  - https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-30r1.pdf
+  - https://www.cisa.gov/
+  - https://hacktricks.wiki/
+  - https://github.com/OWASP/API-Security

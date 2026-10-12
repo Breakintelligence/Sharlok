@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sharlok</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            background: #000;
+            color: #e8e8e8;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        #particles {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        /* ── Hero (Google-style: logo, then search-bar centered) ── */
+        .hero {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 28px;
+            transition: all 0.4s ease;
+        }
+
+        .hero.compact {
+            min-height: 0;
+            padding: 22px 0 18px;
+            gap: 14px;
+        }
+
+        .logo {
+            font-size: 5.5rem;
+            font-weight: 600;
+            letter-spacing: -2px;
+            user-select: none;
+            transition: font-size 0.4s ease;
+        }
+        .hero.compact .logo {
+            font-size: 1.6rem;
+            letter-spacing: -0.5px;
+        }
+
+        .logo span:nth-child(1) { color: #4285F4; }
+        .logo span:nth-child(2) { color: #EA4335; }
+        .logo span:nth-child(3) { color: #FBBC05; }
+        .logo span:nth-child(4) { color: #4285F4; }
+        .logo span:nth-child(5) { color: #34A853; }
+        .logo span:nth-child(6) { color: #EA4335; }
+        .logo span:nth-child(7) { color: #4285F4; }
+
+        /* Search-bar-style upload pill */
+        .bar {
+            width: 584px;
+            max-width: 90vw;
+            height: 46px;
+            background: #131314;
+            border: 1px solid #303134;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            cursor: pointer;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+        .bar:hover, .bar.dragover {
+            box-shadow: 0 1px 6px rgba(255,255,255,0.15);
+            border-color: transparent;
+        }
+        .hero.compact .bar {
+            height: 40px;
+            width: 480px;
+        }
+
+        .bar svg { flex-shrink: 0; opacity: 0.7; }
+
+        .bar .bar-text {
+            flex: 1;
+            font-size: 0.95rem;
+            color: #9aa0a6;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bar .bar-clear {
+            display: none;
+            background: none;
+            border: none;
+            color: #9aa0a6;
+            font-size: 1.1rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px;
+        }
+        .bar.has-file .bar-clear { display: block; }
+
+        #fileInput { display: none; }
+
+        .analyze-row {
+            display: none;
+            align-items: center;
+            gap: 14px;
+            margin-top: 4px;
+        }
+        .analyze-row.show { display: flex; }
+
+        .analyze-btn {
+            padding: 9px 22px;
+            background: #131314;
+            border: 1px solid #303134;
+            border-radius: 4px;
+            color: #e8eaed;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+        .analyze-btn:hover { border-color: #5f6368; }
+        .analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .web-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .web-toggle input { display: none; }
+        .web-toggle-track {
+            width: 34px;
+            height: 18px;
+            background: #303134;
+            border-radius: 10px;
+            position: relative;
+            transition: background 0.2s ease;
+            flex-shrink: 0;
+        }
+        .web-toggle-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            background: #9aa0a6;
+            border-radius: 50%;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+        .web-toggle input:checked + .web-toggle-track { background: #4285F4; }
+        .web-toggle input:checked + .web-toggle-track .web-toggle-thumb {
+            transform: translateX(16px);
+            background: #fff;
+        }
+        .web-toggle-text { font-size: 0.82rem; color: #9aa0a6; }
+
+        .status-line {
+            font-size: 0.8rem;
+            color: #9aa0a6;
+            min-height: 1em;
+            text-align: center;
+        }
+        .status-line.error { color: #f28b82; }
+        .status-line.success { color: #81c995; }
+
+        /* ── Results (revealed after analysis, below the hero) ── */
+        .results {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 60px;
+            display: none;
+        }
+        .results.active { display: block; }
+
+        .section-heading {
+            color: #9aa0a6;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin: 28px 0 12px;
+        }
+
+        .content-box {
+            background: #0d0d0e;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            padding: 20px 22px;
+            font-size: 0.92rem;
+            line-height: 1.7;
+        }
+        .content-box h1, .content-box h2, .content-box h3,
+        .content-box h4, .content-box h5, .content-box h6 {
+            color: #8ab4f8;
+            margin: 22px 0 10px;
+            line-height: 1.3;
+        }
+        .content-box h1:first-child, .content-box h2:first-child, .content-box h3:first-child { margin-top: 0; }
+        .content-box h1 { font-size: 1.5rem; }
+        .content-box h2 { font-size: 1.25rem; }
+        .content-box h3 { font-size: 1.08rem; }
+        .content-box h4, .content-box h5, .content-box h6 { font-size: 0.96rem; color: #cfd7e6; }
+
+        .content-box p { margin: 0 0 14px; color: #d6d8dc; }
+        .content-box strong { color: #f1f3f4; font-weight: 600; }
+        .content-box em { color: #cfd7e6; }
+
+        .content-box ul, .content-box ol { margin: 0 0 14px 22px; }
+        .content-box li { margin-bottom: 6px; }
+
+        .content-box code { background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 4px; font-size: 0.88em; }
+        .content-box pre {
+            background: #17181a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 14px 16px;
+            overflow-x: auto;
+            margin: 0 0 16px;
+        }
+        .content-box pre code { background: none; padding: 0; font-size: 0.85rem; line-height: 1.5; }
+
+        .content-box blockquote {
+            border-left: 3px solid #4285F4;
+            margin: 0 0 16px;
+            padding: 4px 16px;
+            color: #b8bcc4;
+            background: rgba(66,133,244,0.06);
+        }
+        .content-box blockquote p:last-child { margin-bottom: 0; }
+
+        .content-box hr { border: none; border-top: 1px solid #2a2a2a; margin: 20px 0; }
+
+        .content-box a { color: #8ab4f8; text-decoration: none; }
+        .content-box a:hover { text-decoration: underline; }
+
+        .content-box table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 0 18px;
+            font-size: 0.87rem;
+        }
+        .content-box th, .content-box td {
+            border: 1px solid #2a2a2a;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        .content-box th { background: #17181a; color: #8ab4f8; font-weight: 600; }
+        .content-box tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+        .panel-actions { display: flex; gap: 10px; margin-top: 14px; }
+        .panel-actions button {
+            padding: 9px 18px;
+            background: #131314;
+            border: 1px solid #303134;
+            border-radius: 6px;
+            color: #e8eaed;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .panel-actions button:hover { border-color: #5f6368; }
+        .panel-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .loading { text-align: center; color: #9aa0a6; padding: 40px 0; }
+        .spinner {
+            width: 22px; height: 22px;
+            border: 2.5px solid #303134;
+            border-top-color: #8ab4f8;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .chat-box { display: flex; flex-direction: column; height: 460px; }
+        .chat-log {
+            flex: 1; overflow-y: auto;
+            background: #0d0d0e; border: 1px solid #2a2a2a; border-radius: 10px;
+            padding: 14px; margin-bottom: 10px;
+        }
+        .msg { margin-bottom: 12px; font-size: 0.88rem; }
+        .msg.user { text-align: right; }
+        .msg .bubble { display: inline-block; max-width: 82%; padding: 9px 13px; border-radius: 12px; text-align: left; }
+        .msg .bubble p { margin: 0 0 8px; }
+        .msg .bubble p:last-child { margin-bottom: 0; }
+        .msg.user .bubble { background: #1a3a6b; color: #d2e3fc; }
+        .msg.assistant .bubble { background: rgba(255,255,255,0.05); color: #e8eaed; }
+
+        .chat-input-row { display: flex; gap: 8px; }
+        .chat-input-row input {
+            flex: 1; background: #131314; border: 1px solid #303134; border-radius: 20px;
+            padding: 10px 16px; color: #e8eaed; font-size: 0.88rem;
+        }
+        .chat-input-row input:focus { outline: none; border-color: #4285F4; }
+        .chat-input-row button {
+            padding: 0 20px; background: #131314; border: 1px solid #303134; border-radius: 20px;
+            color: #e8eaed; cursor: pointer;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #303134; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <canvas id="particles"></canvas>
+
+    <div class="hero" id="hero">
+        <div class="logo"><span>S</span><span>h</span><span>a</span><span>r</span><span>l</span><span>o</span><span>k</span></div>
+
+        <div class="bar" id="uploadBar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="bar-text" id="barText"></span>
+            <button class="bar-clear" id="barClear">&times;</button>
+        </div>
+        <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,.pptx,.mmd,.md,.txt">
+
+        <div class="analyze-row" id="analyzeRow">
+            <button class="analyze-btn" id="analyzeBtn">Analyze</button>
+            <label class="web-toggle" id="webToggleLabel" title="Fetch live web context (slower, more current)">
+                <input type="checkbox" id="webSearchToggle">
+                <span class="web-toggle-track"><span class="web-toggle-thumb"></span></span>
+                <span class="web-toggle-text">Web search</span>
+            </label>
+        </div>
+        <div class="status-line" id="status"></div>
+    </div>
+
+    <div class="results" id="resultsPanel">
+        <div class="content-box" id="reviewContent"></div>
+        <div class="panel-actions">
+            <button id="downloadBtn" style="display:none">Download</button>
+            <button id="recommendBtn" style="display:none">Get recommendations</button>
+        </div>
+
+        <div class="chat-section" id="chatSection" style="display:none">
+            <h3 class="section-heading">Ask about this review</h3>
+            <div class="chat-box">
+                <div class="chat-log" id="chatMessages"></div>
+                <div class="chat-input-row">
+                    <input type="text" id="chatInput" placeholder="Ask about this review…" disabled>
+                    <button id="sendBtn" disabled>Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// ── Particle background ──
+(function () {
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    let w, h, particles;
+
+    function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+    }
+    function init() {
+        resize();
+        const count = Math.floor((w * h) / 12000);
+        particles = Array.from({ length: count }, () => ({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: (Math.random() - 0.5) * 0.3,
+            r: Math.random() * 1.4 + 0.4,
+        }));
+    }
+    function tick() {
+        ctx.clearRect(0, 0, w, h);
+        for (const p of particles) {
+            p.x += p.vx; p.y += p.vy;
+            if (p.x < 0 || p.x > w) p.vx *= -1;
+            if (p.y < 0 || p.y > h) p.vy *= -1;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.fill();
+        }
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const a = particles[i], b = particles[j];
+                const d = Math.hypot(a.x - b.x, a.y - b.y);
+                if (d < 110) {
+                    ctx.strokeStyle = `rgba(255,255,255,${0.12 * (1 - d / 110)})`;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.stroke();
+                }
+            }
+        }
+        requestAnimationFrame(tick);
+    }
+    window.addEventListener('resize', init);
+    init();
+    tick();
+})();
+
+// ── App state ──
+let currentSessionId = null;
+let currentFile = null;
+
+const hero = document.getElementById('hero');
+const uploadBar = document.getElementById('uploadBar');
+const barText = document.getElementById('barText');
+const barClear = document.getElementById('barClear');
+const fileInput = document.getElementById('fileInput');
+const analyzeRow = document.getElementById('analyzeRow');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const webSearchToggle = document.getElementById('webSearchToggle');
+const statusLine = document.getElementById('status');
+const resultsPanel = document.getElementById('resultsPanel');
+const reviewContent = document.getElementById('reviewContent');
+const chatSection = document.getElementById('chatSection');
+const downloadBtn = document.getElementById('downloadBtn');
+const recommendBtn = document.getElementById('recommendBtn');
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const sendBtn = document.getElementById('sendBtn');
+
+async function initSession() {
+    try {
+        const res = await fetch('/api/session', { method: 'POST' });
+        currentSessionId = (await res.json()).session_id;
+    } catch { showStatus('Failed to start session', 'error'); }
+}
+
+uploadBar.addEventListener('click', () => { if (!currentFile) fileInput.click(); });
+uploadBar.addEventListener('dragover', (e) => { e.preventDefault(); uploadBar.classList.add('dragover'); });
+uploadBar.addEventListener('dragleave', () => uploadBar.classList.remove('dragover'));
+uploadBar.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadBar.classList.remove('dragover');
+    if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFileSelect(e.target.files[0]); });
+
+barClear.addEventListener('click', (e) => {
+    e.stopPropagation();
+    resetHero();
+});
+
+async function handleFileSelect(file) {
+    const ext = '.' + file.name.split('.').pop().toLowerCase();
+    const supported = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.pdf', '.pptx', '.mmd', '.md', '.txt'];
+    if (!supported.includes(ext)) return showStatus('Unsupported file type: ' + ext, 'error');
+
+    currentFile = file;
+    barText.textContent = file.name;
+    uploadBar.classList.add('has-file');
+    analyzeRow.classList.add('show');
+
+    await uploadFile(file);
+}
+
+async function uploadFile(file) {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('session_id', currentSessionId);
+    try {
+        showStatus('Uploading…', '');
+        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        currentSessionId = data.session_id;
+        showStatus('Ready to analyze', 'success');
+        analyzeBtn.disabled = false;
+    } catch { showStatus('Upload failed', 'error'); }
+}
+
+analyzeBtn.addEventListener('click', async () => {
+    analyzeBtn.disabled = true;
+    hero.classList.add('compact');
+    resultsPanel.classList.add('active');
+    reviewContent.innerHTML = '<div class="loading"><div class="spinner"></div>Analyzing architecture…</div>';
+
+    try {
+        showStatus('Generating review…', '');
+        const res = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                session_id: currentSessionId,
+                filename: currentFile.name,
+                use_web_search: webSearchToggle.checked,
+            }),
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        reviewContent.innerHTML = markdownToHtml(data.threat_model);
+        downloadBtn.style.display = 'inline-block';
+        recommendBtn.style.display = 'inline-block';
+        chatSection.style.display = 'block';
+        chatInput.disabled = false;
+        sendBtn.disabled = false;
+        showStatus('Done', 'success');
+    } catch { showStatus('Analysis failed', 'error'); }
+    finally { analyzeBtn.disabled = false; }
+});
+
+recommendBtn.addEventListener('click', async () => {
+    recommendBtn.disabled = true;
+    const marker = document.createElement('div');
+    marker.className = 'loading';
+    marker.innerHTML = '<div class="spinner"></div>Generating recommendations…';
+    reviewContent.appendChild(marker);
+    marker.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    try {
+        const res = await fetch('/api/recommendations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: currentSessionId, threat_model: reviewContent.innerText }),
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        marker.outerHTML = `<h3 class="section-heading">Recommendations</h3>${markdownToHtml(data.recommendations)}`;
+    } catch {
+        marker.remove();
+        showStatus('Failed to generate recommendations', 'error');
+    }
+    finally { recommendBtn.disabled = false; recommendBtn.style.display = 'none'; }
+});
+
+sendBtn.addEventListener('click', sendChatMessage);
+chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChatMessage(); });
+
+async function sendChatMessage() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+    sendBtn.disabled = true;
+    chatInput.value = '';
+    addChatMessage('user', message);
+
+    const typing = document.createElement('div');
+    typing.className = 'msg assistant';
+    typing.innerHTML = '<div class="bubble"><div class="loading" style="padding:0"><div class="spinner" style="margin:0 8px 0 0;display:inline-block;vertical-align:middle"></div>Thinking…</div></div>';
+    chatMessages.appendChild(typing);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    try {
+        const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: currentSessionId, message }),
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        typing.remove();
+        addChatMessage('assistant', data.content);
+    } catch {
+        typing.remove();
+        addChatMessage('assistant', 'Error generating a response.');
+    }
+    finally { sendBtn.disabled = false; chatInput.focus(); }
+}
+
+function addChatMessage(role, content) {
+    const msg = document.createElement('div');
+    msg.className = `msg ${role}`;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    if (role === 'assistant') {
+        bubble.innerHTML = markdownToHtml(content);
+    } else {
+        bubble.textContent = content;
+    }
+    msg.appendChild(bubble);
+    chatMessages.appendChild(msg);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function resetHero() {
+    currentFile = null;
+    fileInput.value = '';
+    barText.textContent = '';
+    uploadBar.classList.remove('has-file');
+    analyzeRow.classList.remove('show');
+    analyzeBtn.disabled = true;
+    hero.classList.remove('compact');
+    resultsPanel.classList.remove('active');
+    reviewContent.innerHTML = '';
+    chatMessages.innerHTML = '';
+    chatSection.style.display = 'none';
+    downloadBtn.style.display = 'none';
+    recommendBtn.style.display = 'none';
+    chatInput.disabled = true;
+    sendBtn.disabled = true;
+    showStatus('', '');
+}
+
+downloadBtn.addEventListener('click', async () => {
+    try {
+        const res = await fetch(`/api/session/${currentSessionId}`);
+        const data = await res.json();
+        if (data.saved_path) window.location.href = `/threat_models/${data.saved_path.split('/').pop()}`;
+    } catch { showStatus('Download failed', 'error'); }
+});
+
+function showStatus(message, type) {
+    statusLine.textContent = message;
+    statusLine.className = `status-line ${type}`;
+}
+
+function markdownToHtml(md) {
+    if (!md) return '';
+
+    // Pull out fenced code blocks first so their contents aren't touched by
+    // inline/list/table parsing below.
+    const codeBlocks = [];
+    md = md.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (_, lang, code) => {
+        const idx = codeBlocks.length;
+        codeBlocks.push({ lang, code });
+        return `\u0000CODEBLOCK${idx}\u0000`;
+    });
+
+    function inline(text) {
+        return text
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>')
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    }
+
+    const lines = md.replace(/\r\n/g, '\n').split('\n');
+    const out = [];
+    let i = 0;
+    let para = [];
+    let listStack = []; // { type: 'ul'|'ol' }
+
+    function flushPara() {
+        if (para.length) {
+            out.push(`<p>${inline(para.join(' ').trim())}</p>`);
+            para = [];
+        }
+    }
+    function closeLists() {
+        while (listStack.length) out.push(`</${listStack.pop().type}>`);
+    }
+
+    while (i < lines.length) {
+        const line = lines[i];
+
+        // Restore fenced code blocks
+        const codeMatch = line.match(/^\u0000CODEBLOCK(\d+)\u0000$/);
+        if (codeMatch) {
+            flushPara(); closeLists();
+            const { lang, code } = codeBlocks[Number(codeMatch[1])];
+            const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            out.push(`<pre><code class="lang-${lang}">${escaped}</code></pre>`);
+            i++; continue;
+        }
+
+        // Horizontal rule
+        if (/^\s*([-*_]){3,}\s*$/.test(line)) {
+            flushPara(); closeLists();
+            out.push('<hr>');
+            i++; continue;
+        }
+
+        // Headings
+        const h = line.match(/^(#{1,6})\s+(.*)$/);
+        if (h) {
+            flushPara(); closeLists();
+            const level = h[1].length;
+            out.push(`<h${level}>${inline(h[2].trim())}</h${level}>`);
+            i++; continue;
+        }
+
+        // Blockquote
+        if (/^>\s?/.test(line)) {
+            flushPara(); closeLists();
+            const quoteLines = [];
+            while (i < lines.length && /^>\s?/.test(lines[i])) {
+                quoteLines.push(lines[i].replace(/^>\s?/, ''));
+                i++;
+            }
+            out.push(`<blockquote>${markdownToHtml(quoteLines.join('\n'))}</blockquote>`);
+            continue;
+        }
+
+        // Tables (header row + separator row)
+        if (/^\|.*\|\s*$/.test(line) && lines[i + 1] && /^\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?\s*$/.test(lines[i + 1])) {
+            flushPara(); closeLists();
+            const parseCells = (row) => row.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+            const headerCells = parseCells(line);
+            i += 2;
+            const bodyRows = [];
+            while (i < lines.length && /^\|.*\|\s*$/.test(lines[i])) {
+                bodyRows.push(parseCells(lines[i]));
+                i++;
+            }
+            let table = '<table><thead><tr>' +
+                headerCells.map(c => `<th>${inline(c)}</th>`).join('') + '</tr></thead><tbody>';
+            for (const row of bodyRows) {
+                table += '<tr>' + row.map(c => `<td>${inline(c)}</td>`).join('') + '</tr>';
+            }
+            table += '</tbody></table>';
+            out.push(table);
+            continue;
+        }
+
+        // Lists (unordered - * +, ordered 1.)
+        const ul = line.match(/^(\s*)[-*+]\s+(.*)$/);
+        const ol = line.match(/^(\s*)\d+\.\s+(.*)$/);
+        if (ul || ol) {
+            flushPara();
+            const type = ul ? 'ul' : 'ol';
+            if (!listStack.length || listStack[listStack.length - 1].type !== type) {
+                closeLists();
+                out.push(`<${type}>`);
+                listStack.push({ type });
+            }
+            out.push(`<li>${inline((ul || ol)[2])}</li>`);
+            i++; continue;
+        }
+        if (listStack.length && line.trim() === '') {
+            // blank line ends the list unless the next line continues it
+            const next = lines[i + 1];
+            if (!next || !(/^(\s*)[-*+]\s+/.test(next) || /^(\s*)\d+\.\s+/.test(next))) {
+                closeLists();
+            }
+            i++; continue;
+        }
+
+        // Blank line -> paragraph break
+        if (line.trim() === '') {
+            flushPara();
+            i++; continue;
+        }
+
+        // Plain paragraph text
+        para.push(line.trim());
+        i++;
+    }
+    flushPara();
+    closeLists();
+    return out.join('\n');
+}
+
+window.addEventListener('load', initSession);
+</script>
+</body>
+</html>

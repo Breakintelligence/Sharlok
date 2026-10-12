@@ -1,0 +1,45 @@
+<svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+  <!-- Sharlok Holmes Silhouette - Minimalist Design -->
+  <defs>
+    <style>
+      .Sharlok-silhouette {
+        fill: currentColor;
+        opacity: 0.9;
+      }
+    </style>
+  </defs>
+  
+  <!-- Head -->
+  <ellipse cx="200" cy="120" rx="45" ry="55" class="Sharlok-silhouette"/>
+  
+  <!-- Deerstalker Hat -->
+  <path d="M 155 65 Q 150 45 170 35 Q 200 20 230 35 Q 250 45 245 65 L 200 75 Z" class="Sharlok-silhouette"/>
+  <path d="M 160 70 Q 155 75 165 85 M 240 70 Q 245 75 235 85" class="Sharlok-silhouette" stroke="currentColor" stroke-width="3" fill="none"/>
+  
+  <!-- Face - eyes -->
+  <circle cx="185" cy="110" r="4" class="Sharlok-silhouette"/>
+  <circle cx="215" cy="110" r="4" class="Sharlok-silhouette"/>
+  
+  <!-- Pipe -->
+  <path d="M 155 135 Q 140 140 135 155 Q 130 165 140 170" class="Sharlok-silhouette" stroke="currentColor" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <ellipse cx="135" cy="172" rx="8" ry="12" class="Sharlok-silhouette"/>
+  
+  <!-- Collar and Jacket -->
+  <path d="M 160 170 L 150 180 L 145 250 Q 145 260 155 265 L 200 270 L 245 265 Q 255 260 255 250 L 250 180 L 240 170" class="Sharlok-silhouette"/>
+  
+  <!-- Tie/Cravat -->
+  <path d="M 195 170 L 190 190 L 210 190 L 205 170" class="Sharlok-silhouette"/>
+  
+  <!-- Left Arm with Magnifying Glass -->
+  <path d="M 160 185 L 120 220" class="Sharlok-silhouette" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <circle cx="110" cy="235" r="20" class="Sharlok-silhouette" stroke="currentColor" stroke-width="3" fill="none"/>
+  <line x1="95" y1="250" x2="85" y2="260" class="Sharlok-silhouette" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Right Arm -->
+  <path d="M 240 185 L 280 220" class="Sharlok-silhouette" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M 285 225 L 310 240" class="Sharlok-silhouette" stroke="currentColor" stroke-width="5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Coat tails -->
+  <path d="M 155 265 Q 140 280 145 320 L 155 340" class="Sharlok-silhouette" stroke="currentColor" stroke-width="5" fill="none"/>
+  <path d="M 245 265 Q 260 280 255 320 L 245 340" class="Sharlok-silhouette" stroke="currentColor" stroke-width="5" fill="none"/>
+</svg>
